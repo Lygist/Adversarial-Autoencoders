@@ -1,19 +1,12 @@
 import numpy as np
-
 import models
 from torchvision.utils import save_image
-
-
 import torch
-
 from torch.utils.data import DataLoader, dataset
 from torchvision.datasets import MNIST
 import torchvision.transforms as T
-eps = np.finfo(float).eps
-
 import argparse
 import os
-
 
 desc = "Pytorch implementation of AAE'"
 parser = argparse.ArgumentParser(description=desc)
@@ -25,14 +18,7 @@ parser.add_argument('--use_cuda', type=bool, default=False, help='Use GPU?')
 parser.add_argument('--log_interval', type=int, default=100)
 
 args = parser.parse_args()
-
 EPS = 1e-15
-
-
-
-
-""" GPU """
-# Enable CUDA, set tensor type and device
 
 use_cuda = True
 use_cuda = use_cuda and torch.cuda.is_available()
@@ -44,58 +30,47 @@ else:
     dtype = torch.FloatTensor
     device = torch.device("cpu")
 
-""" Directory loading """
-
 Model_dir = 'Models/'
-
 if not os.path.exists(Model_dir):
     os.makedirs(Model_dir)
 
 Data_dir = 'Data/'
-
 if not os.path.exists(Data_dir):
     os.makedirs(Data_dir)
 
 log_dir = 'logs/'
-
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 Fig_dir = 'Figs/'
-
 if not os.path.exists(Fig_dir):
     os.makedirs(Fig_dir)
 
-
-
-""" Data loaders """
-
 train_loader = torch.utils.data.DataLoader(MNIST('Data/', train=True, download=True,
                              transform=T.Compose([
-                               T.transforms.ToTensor(),
+                               T.ToTensor(),
                                T.Normalize(
                                  (0.1307,), (0.3081,))
-                             ])),batch_size=args.batch_size, shuffle=True)
+                             ])), batch_size=args.batch_size, shuffle=True)
 
 val_loader = torch.utils.data.DataLoader(MNIST('Data/', train=False, download=True,
                              transform=T.Compose([
-                               T.transforms.ToTensor(),
+                               T.ToTensor(),
                                T.Normalize(
                                  (0.1307,), (0.3081,))
-                             ])),batch_size=args.batch_size, shuffle=False)
+                             ])), batch_size=args.batch_size, shuffle=False)
 
-encoder = models.Encoder(784,args.dim_z).to(device)
-decoder = models.Decoder(784,args.dim_z).to(device)
+encoder = models.Encoder(784, args.dim_z).to(device)
+decoder = models.Decoder(784, args.dim_z).to(device)
 
-encoder.load_state_dict(torch.load(Model_dir + 'encoder_z'+ str(args.dim_z)+'_epch'+str(args.epochs)+'.pt'))
-decoder.load_state_dict(torch.load(Model_dir + 'decoder_z'+ str(args.dim_z)+'_epch'+str(args.epochs)+'.pt'))
-
+encoder.load_state_dict(torch.load(Model_dir + f'encoder_z{args.dim_z}_epch{args.epochs}.pt'))
+decoder.load_state_dict(torch.load(Model_dir + f'decoder_z{args.dim_z}_epch{args.epochs}.pt'))
 
 def reconstruct(encoder, decoder, device, dtype, loader_val):
     encoder.eval()
     decoder.eval()
-    X_val, _= next(iter(loader_val))
-    X_val = X_val.view(-1,784)
+    X_val, _ = next(iter(loader_val))
+    X_val = X_val.view(-1, 784)
     X_val = X_val.type(dtype)
     X_val = X_val.to(device)
     z_val = encoder(X_val)
@@ -106,6 +81,6 @@ def reconstruct(encoder, decoder, device, dtype, loader_val):
     comparison = torch.cat((X_val, X_hat_val), 1).view(10 * 28, 2 * 28)
     return comparison
 
-comparison = reconstruct(encoder,decoder, device, dtype, val_loader)
-save_image(comparison,
-           Fig_dir + 'AAE_comparison_z_{}_epch_{}.png'.format(args.dim_z,args.epochs))
+comparison = reconstruct(encoder, decoder, device, dtype, val_loader)
+save_image(comparison, Fig_dir + f'AAE_comparison_z_{args.dim_z}_epch_{args.epochs}.png')
+
