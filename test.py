@@ -17,7 +17,7 @@ import os
 
 desc = "Pytorch implementation of AAE'"
 parser = argparse.ArgumentParser(description=desc)
-parser.add_argument('--dim_z', type=int, help='Dimensionality of latent variables', default=32)
+parser.add_argument('--dim_z', type=int, default=10, help='Dimensionality of latent code')
 parser.add_argument('--lr', type=float, default=0.001, help='Learning rate of ADAM optimizer')
 parser.add_argument('--epochs', type=int, default=10, help='The number of epochs to run')
 parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
@@ -27,6 +27,8 @@ parser.add_argument('--log_interval', type=int, default=100)
 args = parser.parse_args()
 
 EPS = 1e-15
+
+
 
 
 """ GPU """
